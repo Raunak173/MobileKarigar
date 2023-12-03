@@ -94,7 +94,7 @@ const Home = () => {
     handleSearchDebounced(value);
   };
   return (
-    <View style={{backgroundColor: '#fbfafe'}}>
+    <View style={{backgroundColor: '#fbfafe', flex: 1}}>
       <AddCardModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
@@ -163,7 +163,7 @@ const Home = () => {
           <TotalCard />
         </View>
       </View>
-      <ScrollView style={{height: 470}}>
+      <ScrollView>
         <View style={styles.cardCont}>
           {filteredCards().map((card, index) => (
             <Card
@@ -242,10 +242,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fefefe',
     paddingHorizontal: 7,
-    marginHorizontal: 32,
+    marginHorizontal: 24,
     rowGap: 10,
     paddingVertical: 10,
     elevation: 10,
+    flex: 1,
   },
   add: {
     position: 'absolute',

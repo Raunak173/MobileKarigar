@@ -4,7 +4,7 @@ import Home from './pages/Home';
 
 const App = () => {
   return (
-    <View>
+    <View style={{flex: 1}}>
       <Home />
     </View>
   );

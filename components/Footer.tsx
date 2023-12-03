@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: 'center',
     elevation: 10,
+    width: '100%',
   },
   footText: {
     color: '#979696',
