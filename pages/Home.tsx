@@ -98,7 +98,15 @@ const Home = () => {
 
   const handleLayout = componentName => event => {
     const {x, y, width, height} = event.nativeEvent.layout;
-    updateLayoutData(componentName, {x, y, width, height});
+    const layoutInfo = {
+      name: componentName,
+      x,
+      y,
+      width,
+      height,
+      componentId: Date.now(),
+    };
+    updateLayoutData(layoutInfo);
   };
 
   return (

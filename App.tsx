@@ -1,42 +1,65 @@
-import React, {useRef} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+  Image,
+} from 'react-native';
 import Home from './pages/Home';
 import {LayoutDataProvider, useLayoutData} from './LayoutContext';
 import ViewShot from 'react-native-view-shot';
 import axios from 'axios';
-import RNFS from 'react-native-fs';
-import base64 from 'react-native-base64';
 
 const App = () => {
+  const [isDeepLink, setIsDeepLink] = useState(true);
+  useEffect(() => {
+    const handleDeepLink = event => {
+      setIsDeepLink(true);
+      let data = Linking.parse(event.url);
+      return (
+        <LayoutDataProvider>
+          <AppContent isDeepLink={isDeepLink} />
+        </LayoutDataProvider>
+      );
+    };
+
+    Linking.addEventListener(
+      'https://nudge-mobile-connect.web.app/?socketId=64d7ade056ddebf51f96654a&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NGQ3YWRlMDU2ZGRlYmY1MWY5NjY1NGEiLCJjbGllbnRJZCI6IjY0ZDdhZGUwNTZkZGViZjUxZjk2NjU0YSIsInJvbGUiOiJvd25lciIsImlhdCI6MTcwMTY1NjIyOSwiZXhwIjoxNzA0MjQ4MjI5fQ.ZOrCH6EYIeom2WdsohWgD1vTm5g0eMINny1aVbUHsMk&prefixKey=nudge-64d7ade056ddebf51f96654a',
+      handleDeepLink,
+    );
+
+    return () => {
+      // Linking.removeEventListener('mobilekarigar://home', handleDeepLink);
+    };
+  }, []);
+
   return (
     <LayoutDataProvider>
-      <AppContent />
+      <AppContent isDeepLink={isDeepLink} />
     </LayoutDataProvider>
   );
 };
 
-const AppContent = () => {
+const AppContent = ({isDeepLink}) => {
   const {layoutData} = useLayoutData();
   const viewShotRef = useRef();
 
-  const base64toBlob = base64Data => {
-    const sliceSize = 512;
-    const byteCharacters = base64.decode(base64Data);
-    const byteArrays = [];
-
-    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
-    }
-
-    return new Blob(byteArrays, {type: 'image/jpeg'});
+  let widthX, heightY;
+  const getImageSize = uri => {
+    Image.getSize(
+      uri,
+      (width, height) => {
+        console.log(`Width: ${width}, Height: ${height}`);
+        widthX = width;
+        heightY = height;
+        // You can also perform other actions with width and height here
+      },
+      error => {
+        console.error(`Could not get image size: ${error}`);
+      },
+    );
   };
 
   const captureLayout = async () => {
@@ -47,19 +70,23 @@ const AppContent = () => {
       console.log('layout', layoutData);
       console.log('uri', screenshotUri);
 
-      // Convert local file URI to a base64 string and then to a Blob
-      const base64Data = await RNFS.readFile(screenshotUri, 'base64');
-      const blob = base64toBlob(base64Data);
+      getImageSize(screenshotUri);
 
       // Prepare form data
       const formData = new FormData();
-      formData.append('screenshot', blob);
-      formData.append('socketId', 'bLaOU3OO5CxA+2BkmmXMgQ==');
+      formData.append('screenshot', {
+        uri: screenshotUri,
+        type: 'image/png',
+        name: 'screenshot.png',
+      });
+      // formData.append('screenshot', fileInput.files[0]);
+      formData.append('properties', JSON.stringify({screenSize: `1080x1920`}));
+      formData.append('socketId', '64d7ade056ddebf51f96654a');
       formData.append('name', 'Raunak');
-      formData.append('pageId', '1');
+      formData.append('pageId', Date.now());
       formData.append('appVersion', '1.0.0');
       formData.append('tag', '1');
-      formData.append('components', JSON.stringify(layoutData));
+      formData.append('components', layoutData);
 
       // Send POST request
       const response = await axios.post(
@@ -82,11 +109,15 @@ const AppContent = () => {
 
   return (
     <View style={styles.container}>
-      <ViewShot ref={viewShotRef} options={{format: 'jpg', quality: 0.9}}>
+      <ViewShot ref={viewShotRef} options={{format: 'png', quality: 1}}>
         <Home />
-        <TouchableOpacity style={styles.captureButton} onPress={captureLayout}>
-          <Text style={{color: 'white'}}>Capture Layout</Text>
-        </TouchableOpacity>
+        {isDeepLink && (
+          <TouchableOpacity
+            style={styles.captureButton}
+            onPress={captureLayout}>
+            <Text style={{color: 'white'}}>Capture Layout</Text>
+          </TouchableOpacity>
+        )}
       </ViewShot>
     </View>
   );
