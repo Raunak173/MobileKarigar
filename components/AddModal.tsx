@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import Modal from 'react-native-modal';
+import {useLayoutData} from '../LayoutContext';
 
 const AddCardModal = ({
   modalVisible,
@@ -15,12 +16,19 @@ const AddCardModal = ({
   setNewCardData,
   handleAddCard,
 }) => {
+  const {updateLayoutData} = useLayoutData();
+
+  const handleLayout = componentName => event => {
+    const {x, y, width, height} = event.nativeEvent.layout;
+    updateLayoutData(componentName, {x, y, width, height});
+  };
   return (
     <Modal
       isVisible={modalVisible}
       onBackdropPress={() => setModalVisible(false)}
       animationIn="slideInUp"
-      animationOut="slideOutDown">
+      animationOut="slideOutDown"
+      onLayout={event => handleLayout('AddModal')(event)}>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Add New Card</Text>

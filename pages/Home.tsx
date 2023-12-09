@@ -17,6 +17,7 @@ import Footer from '../components/Footer';
 import AddCardModal from '../components/AddModal';
 import DummyCards from '../components/DummyCards';
 import {debounce} from 'lodash';
+import {useLayoutData} from '../LayoutContext';
 
 const Home = () => {
   const [cards, setCards] = useState(DummyCards);
@@ -93,21 +94,45 @@ const Home = () => {
     setSearchInput(value);
     handleSearchDebounced(value);
   };
+  const {updateLayoutData} = useLayoutData();
+
+  const handleLayout = componentName => event => {
+    const {x, y, width, height} = event.nativeEvent.layout;
+    const layoutInfo = {
+      name: componentName,
+      x,
+      y,
+      width,
+      height,
+      componentId: Date.now(),
+    };
+    updateLayoutData(layoutInfo);
+  };
+
   return (
-    <View style={{backgroundColor: '#fbfafe', flex: 1}}>
+    <View
+      style={{backgroundColor: '#fbfafe', flex: 1}}
+      onLayout={event => handleLayout('HomeMainView')(event)}>
       <AddCardModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
         newCardData={newCardData}
         setNewCardData={setNewCardData}
         handleAddCard={handleAddCard}
+        onLayout={event => handleLayout('CardModal')(event)}
       />
-      <View style={styles.prof}>
+      <View
+        style={styles.prof}
+        onLayout={event => handleLayout('ProfileView')(event)}>
         <Image source={profile} />
         <Text style={styles.profText}>Mannalal Manaklal</Text>
       </View>
-      <View style={styles.main}>
-        <View style={styles.searchBox}>
+      <View
+        style={styles.main}
+        onLayout={event => handleLayout('MainView')(event)}>
+        <View
+          style={styles.searchBox}
+          onLayout={event => handleLayout('SearchView')(event)}>
           <Image source={search} />
           <TextInput
             placeholder="Search Karigar"
@@ -115,8 +140,11 @@ const Home = () => {
             onChangeText={handleSearch}
           />
         </View>
-        <View style={styles.filters}>
+        <View
+          style={styles.filters}
+          onLayout={event => handleLayout('FilterView')(event)}>
           <TouchableOpacity
+            onLayout={event => handleLayout('BothBtn')(event)}
             style={[
               styles.pils,
               {backgroundColor: active === 'both' ? '#7F90AB' : 'white'},
@@ -131,6 +159,7 @@ const Home = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onLayout={event => handleLayout('GoldBtn')(event)}
             style={[
               styles.pils,
               {backgroundColor: active === 'gold' ? '#7F90AB' : 'white'},
@@ -145,6 +174,7 @@ const Home = () => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            onLayout={event => handleLayout('SilverBtn')(event)}
             style={[
               styles.pils,
               {backgroundColor: active === 'silver' ? '#7F90AB' : 'white'},
@@ -159,12 +189,16 @@ const Home = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.totalCardCont}>
+        <View
+          style={styles.totalCardCont}
+          onLayout={event => handleLayout('ToatalCard')(event)}>
           <TotalCard />
         </View>
       </View>
       <ScrollView>
-        <View style={styles.cardCont}>
+        <View
+          style={styles.cardCont}
+          onLayout={event => handleLayout('CardCont')(event)}>
           {filteredCards().map((card, index) => (
             <Card
               key={index}
@@ -175,7 +209,10 @@ const Home = () => {
           ))}
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.add} onPress={toggleModal}>
+      <TouchableOpacity
+        style={styles.add}
+        onPress={toggleModal}
+        onLayout={event => handleLayout('AddBtn')(event)}>
         <Image source={add} />
       </TouchableOpacity>
       <Footer />
